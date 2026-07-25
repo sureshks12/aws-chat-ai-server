@@ -1,0 +1,53 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  password      String
+  createdAt     DateTime      @default(now())
+  
+  awsProfile    AWSProfile?
+  chatHistories ChatHistory[]
+  auditLogs     AuditLog[]
+}
+
+model AWSProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessKey          String
+  secretKeyEncrypted String
+  sessionToken       String?
+  defaultRegion      String
+  createdAt          DateTime @default(now())
+}
+
+model ChatHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question  String
+  response  String
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service         String
+  operation       String
+  requestJson     String
+  responseSummary String
+  status          String
+  createdAt       DateTime @default(now())
+}
